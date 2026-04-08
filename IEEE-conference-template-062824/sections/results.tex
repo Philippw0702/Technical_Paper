@@ -1,1 +1,44 @@
-% Present your experimental results here.
+This section aims to explain the main properties CRDT and OT in order to explain
+their relevance in eventual consistent systems and compare them later on.
+
+\subsection{CRDTs}
+
+\subsubsection{Intuition}
+
+In many cases, Data needs to be stored in copies on multiple computers also 
+known as replicas. Examples of these cases are \cite{CRDT_Overview}:
+
+\begin{itemize}
+    \item Mobile apps
+    \item Distributed databases
+    \item Collabortion software
+    \item Large-scale data storages
+\end{itemize}
+
+All of those systems need to deal with the fact that data might be updated 
+concurrently on multiple devices.
+
+\subsection{CRDT properties}
+
+All CRDTs have these properties in order to ensure strong eventual consistency:
+
+\begin{itemize}
+    \item Associativity: The order of merging does not matter.
+    \item Commutativitx: Whoever does a merge with who has no influence.
+    \item Idempotency: Merging the same change multiple times has no additional effect.
+\end{itemize}
+
+\subsection{State-based vs. Operation based}
+
+\subsubsection{State-based CRDT}
+State based CRDTs rely on sending their full state periodically to other
+replicas in order to synchronise the system. This approach prones to get 
+really cost inefficient as CRDT states grow. Delta-based CRDTs tackle this problem
+by producing small incremental states (deltas) to be used for synchronization. Surprisingly,
+current synchronisation algorithms induce redundant, wasteful deltas, which causes it to 
+perform worse than expected \cite{Stateful_delta}. 
+
+\subsubsection{Operation Based CRDT}
+
+
+
