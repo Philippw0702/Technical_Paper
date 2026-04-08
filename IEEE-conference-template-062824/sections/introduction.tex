@@ -1,1 +1,20 @@
-This document is a model and instructions for \LaTeX. Please observe the conference page limits.
+Distributed systems that allow concurrent modifications to shared data face
+the fundamental challenge of conflict resolution without central coordination.
+The consistency, availability and partition tolerance (CAP) theorem, also known as
+Brewer's Theorem \cite{CAP_Brewer}, dictates that no system can simultaneously
+guarantee consistency, availability and partition tolerance \cite{CAP_main_aussage}.
+
+Two predominant approaches have emerged:
+Operational Transformation (OT) \cite{ellis1989concurrency}, originally developed
+to support collaborative software, ensures consistency for concurrent editors.
+Conflict-free Replicated Data Types (CRDTs) \cite{shapiro2011crdt} are data structures
+replicated across multiple nodes that guarantee an application can update any replica
+independently, concurrently, and without coordinating with other replicas.
+
+Since guarentting all three properties simultaneously is impossible, every 
+distributed system designer had to face the decision of which property to cut.
+Many modern systems prioritize availability and partition tolerance over strong
+consistency, accepting eventual consistency as a design goal \cite{vogels2009eventually}.
+
+However, making a decision involves complex trade-offs in complexity, scalability
+and architectural assumptions. 
