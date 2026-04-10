@@ -1,5 +1,27 @@
 \begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
+Decentralized replicated systems face the fundamental challenge of consistently
+merging concurrent changes to shared data without relying on a central
+coordinating authority. The CAP theorem \cite{brewer2000} shows that in
+partitioned networks, strong consistency and high availability cannot be
+guaranteed simultaneously \cite{gilbert2002}, which is why modern distributed
+systems frequently adopt Eventual Consistency as a core design goal
+\cite{shapiro2011comprehensive}. In this context, two competing approaches to
+automatic conflict resolution have emerged: Conflict-free Replicated Data Types
+(CRDTs) \cite{shapiro2011comprehensive} and Operational Transformation (OT)
+\cite{ellis1989}.
+
+This paper analyzes both approaches. It has the focus on their theoretical
+foundations, practical implementation complexity, and suitability for
+decentralized environments with high concurrency. Both state-based and
+operation-based CRDTs are explained and contrasted with established OT control
+algorithms \cite{shapiro2011crdt}. The evaluation is conducted based on the
+criteria of latency, convergence behavior, scalability, and memory consumption.
+
+The results indicate that CRDTs, because of their mathematically guaranteed
+convergence properties, work best for serverless peer-to-peer architectures
+\cite{kleppmann2019}. On the other hand, OT-based approaches demonstrate their
+strengths primarily in server-coordinated collaborative systems
+\cite{ellis1989}. Finally, hybrid approaches such as Yjs \cite{nicolaescu2015}
+are discussed, which combine properties of both paradigms to compensate for
+their respective weaknesses.
 \end{abstract}

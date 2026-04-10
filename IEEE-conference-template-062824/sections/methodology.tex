@@ -1,1 +1,53 @@
-% Describe your research methodology here.
+The goal of this paper is to compare Operational Transformation and CRDTs as approaches for handling
+conflicts in distributed systems. Since both approaches are well documented in research literature and in
+the documentation of existing software, this comparison is done by looking at existing sources rather than
+running our own tests or experiments. We look at what each approach promises, how it works in theory, and
+how real systems have implemented it.
+
+\subsection{Comparison Criteria}
+
+To make the comparison structured and fair, we evaluate both approaches based on the same set of criteria:
+
+\begin{enumerate}
+    \item \textbf{Response time:} Can a node apply a change immediately, or does it have to wait for a
+    response from another server first? Fast response is important for a smooth user experience.
+    \item \textbf{Consistency:} Do all nodes end up with the same data after syncing? This is the most
+    important requirement for any conflict resolution system \cite{shapiro2011comprehensive}.
+    \item \textbf{Difficulty of implementation:} How hard is it to build the approach correctly? OT in
+    particular has a history of subtle bugs that are easy to introduce \cite{nichols1995jupiter}.
+    \item \textbf{Suitability for decentralised use:} Does the approach require a central server, or can
+    it work in a peer-to-peer setup where nodes are sometimes offline?
+    \item \textbf{Storage and network cost:} How much extra data needs to be stored or sent over the
+    network to make the conflict resolution work?
+\end{enumerate}
+
+\subsection{Test Scenarios}
+
+We apply these criteria to two typical situations that often cause problems in distributed systems:
+
+\textbf{Many changes at once:} Several nodes make changes to the same data at the same time, without
+knowing about each other's changes yet. This is the core problem that both OT and CRDTs are trying to solve.
+
+\textbf{Offline and reconnect:} A node is temporarily disconnected from the network, continues to accept
+changes locally, and then needs to sync everything when it comes back online. This is a very common
+real-world situation -- for example when editing a document on a phone without internet access
+\cite{automerge2024, nicolaescu2015}.
+
+\subsection{Systems Used as Examples}
+
+To show how the theory works in practice, we look at a few real systems that use either OT or CRDTs:
+
+\begin{itemize}
+    \item \textbf{Jupiter} \cite{nichols1995jupiter} -- an early collaborative editing system that used OT
+    with a central server.
+    \item \textbf{Riak KV} \cite{riak2024} -- a database that uses CRDT data types to handle conflicting
+    writes automatically.
+    \item \textbf{Redis Active-Active} \cite{redis2024} -- a database system that allows writes in multiple
+    locations at the same time, and uses CRDTs to merge them.
+    \item \textbf{Automerge} \cite{automerge2024} and \textbf{Yjs} \cite{nicolaescu2015} -- two
+    open-source libraries that use CRDTs to let developers build collaborative, offline-capable
+    applications.
+\end{itemize}
+
+For each system we only look at the official documentation and published descriptions -- no new tests
+were run.

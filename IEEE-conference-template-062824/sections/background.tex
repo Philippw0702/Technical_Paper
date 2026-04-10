@@ -1,0 +1,168 @@
+This section aims to explain the main properties CRDT and OT in order to explain
+their relevance in eventual consistent systems and compare them later on.
+
+\subsection{CRDTs}
+
+\subsubsection{Intuition}
+
+In many cases, Data needs to be stored in copies on multiple computers also
+known as replicas. Examples of these cases are \cite{CRDT_Overview}:
+
+\begin{itemize}
+    \item Mobile apps
+    \item Distributed databases
+    \item Collaboration software
+    \item Large-scale data storages
+\end{itemize}
+
+All of those systems need to deal with the fact that data might be updated
+concurrently on multiple devices.
+
+\subsection{CRDT properties}
+
+All CRDTs have these properties in order to ensure strong eventual consistency:
+
+\begin{itemize}
+    \item Associativity: The order of merging does not matter.
+    \item Commutativity: Whoever does a merge with who has no influence.
+    \item Idempotency: Merging the same change multiple times has no additional effect.
+\end{itemize}
+
+\subsection{State-based vs. Operation based}
+
+\subsubsection{State-based CRDT}
+State based CRDTs rely on sending their full state periodically to other
+replicas in order to synchronise the system. This approach tends to become costly
+as CRDT states grow. Delta-based CRDTs tackle this problem
+by producing small incremental states (deltas) to be used for synchronization. Surprisingly,
+current synchronisation algorithms induce redundant, wasteful deltas, which causes it to
+perform worse than expected \cite{Stateful_delta}.
+
+\subsubsection{Operation Based CRDT}
+
+Changes in Operation based CRDT happen locally first. After that, the peer shares
+the operation to other peers, which also operate locally. In order to ensure conflict-free
+synchronisation between peers, these three conditions need to be satisfied \cite{operation_based_overview}:
+
+\begin{itemize}
+    \item Messages are received in the same order as sent.
+    \item Every message is sent exactly once
+    \item Operations, that can be processed simultaneously, have to be commutative
+\end{itemize}
+
+The drawback of this approach are the constraints it puts on the communication channel:
+Messages have to be delivered only once (fire-and-forget), in causal order, to each peer\cite{sending_order}.
+
+\subsection{Important Data Types}
+
+\subsubsection{G-Counter}
+
+The G-Counter is a state-based CRDT designed for a cluster of $n$ nodes. Each node is assigned a unique ID (ranging from $0$ to $n-1$)
+and may only increment its own slot $P[i]$ in a shared array $P$. To retrieve the total count, all slots are summed. When two nodes synchronize,
+their states are merged by taking the maximum value for each slot: $Z.P[i] = \max(X.P[i], Y.P[i])$. This ensures that no increments are lost,
+regardless of the order in which updates arrive \cite{shapiro2011crdt}.
+
+
+\subsubsection{PN-Counter}
+
+As previously mentioned, the G-Counter revolves around incrementation only, but what if it has to be decremented?
+This is what PN-Counter does. In contrast to G-Counter, it has two Counters, one tracking the increments and the other
+tracking the decrements. Before merging, it subtracts the positive count with the negative one, then proceeds to merge
+like a G-Counter, by comparing both values \cite{PN_Counter}.
+
+
+\subsection{Operational Transformation}
+
+\subsubsection{Intuition}
+
+Operational Transformation is a conflict resolution algorithm in distributed systems
+with more than one node accepting data changes. From a development perspective, collaborative
+editing is a difficult task to approach with a lot of different solutions with their own trade-offs.
+In order to imitate immediate response, each client stores its own local copy, otherwise clients would have to
+wait for their actions to sync with other clients, which would cause a noticeable delay.
+So the main challenge is to ensure consistency over peers which means, that they have to converge to a single version.
+
+\subsubsection{Transformation Function}
+
+Two concurrent Operations are converted in a way, that ensures, that the operations are commutative.
+For example, if User A inserts an "X" at position 3 and User B deletes position 3 concurrently, it would
+result in a conflict, but this is exactly where the transformation function helps. It transforms both
+operations in a way that ensures, that there is no conflict.
+
+\paragraph{How it works}
+
+Before diving into transformation logic, it is crucial to understand how edits are represented.
+Peers can not just send inserted text to the server, instead, they need to send an atomic operation
+that describes following points:
+
+\begin{itemize}
+    \item what changed
+    \item where it changed
+    \item when it changed
+\end{itemize}
+
+In practice, the package the peer sends would look like this: First, it sends the DocId, which describes
+the document the changes are assigned to. Then, it would send the base version (the version the user saw).
+Afterward, it sends the userId representing the user who made the change and most important, the actual operation,
+which is either an insert or a delete.
+
+You can see an example of the json file in listing \ref{lst:msg_json}
+
+\begin{lstlisting}[language=json, label=lst:msg_json]
+{
+    "docId": "doc_2345",
+    "userId": "user_12",
+    "baseVersion": 14,
+    "op": {
+        "type": "insert",
+        "pos": 67,
+        "text": "I"
+    }
+}
+\end{lstlisting}
+In order to help the server keep track, the client needs to store the current
+version number of the document and the text state of the current document.
+
+The server accepts the request and compares the base-version the client sent with
+its own base version. In a simple scenario, the versions match and the operation can
+operate without any transformation. However, if the server has a different state, the server
+has to transform the operation. In this case, the server has saved all the operations made, so it
+is able to fetch the old version of the document. Finally, it transforms the operation of the client
+and transforms it against each historical operation in the order they were applied. As a result, the operation
+can be applied without any conflict.
+
+\paragraph{Convergence}
+
+The core guarantee of OT is that all replicas converge to the same state once all operations have been
+delivered and applied. Two properties are required to achieve this \cite{ellis1989concurrency}:
+
+\begin{itemize}
+    \item \textbf{TP1 (Transformation Property 1):} If two operations $O_1$ and $O_2$ are concurrent,
+    then applying $O_1$ followed by $T(O_2, O_1)$ must yield the same document state as applying $O_2$
+    followed by $T(O_1, O_2)$.
+    \item \textbf{TP2 (Transformation Property 2):} Required in decentralized settings where operations
+    can be transformed against other already-transformed operations. This property ensures the
+    transformation function remains consistent across different transformation paths.
+\end{itemize}
+
+In a centralized architecture, only TP1 is required, which considerably simplifies the implementation.
+TP2 is notoriously difficult to satisfy and remains an open research challenge for peer-to-peer OT systems.
+
+\subsubsection{Limitations of OT}
+
+While OT is well-suited for collaborative text editing, it comes with notable limitations:
+
+\begin{itemize}
+    \item \textbf{Complexity:} Designing a correct transformation function that satisfies TP1 and TP2 is
+    non-trivial. Several published OT algorithms were later found to contain correctness bugs
+    \cite{ellis1989concurrency}.
+    \item \textbf{Centralized dependency:} Most practical OT implementations rely on a central server
+    to serialize and order operations. This introduces a single point of failure and limits scalability
+    in fully decentralized scenarios.
+    \item \textbf{State overhead:} The server must retain the full operation history to be able to
+    transform late-arriving operations from clients that are far behind the current document version.
+\end{itemize}
+
+Despite these drawbacks, OT remains widely deployed in production systems such as Google Docs,
+where the centralized model is an acceptable architectural trade-off.
+

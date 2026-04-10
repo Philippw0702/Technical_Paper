@@ -10,6 +10,16 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{listings}
+\lstdefinelanguage{json}{
+    basicstyle=\small\ttfamily,
+    showstringspaces=false,
+    breaklines=true,
+    string=[s]{"}{"},
+    stringstyle=\color{blue},
+    comment=[l]{//},
+    commentstyle=\color{gray},
+}
 
 % Optional (empfohlen)
 \usepackage{hyperref}
@@ -19,23 +29,23 @@
 % ====================
 % Title
 % ====================
-\title{Your Paper Title}
+\title{Conflict Resolution in Large-Scale Replicas: Evaluating CRDTs and Operational Transformation for Decentralized Environments}
 
 % ====================
 % Authors
 % ====================
 \author{
-\IEEEauthorblockN{First Author}
-\IEEEauthorblockA{
-Affiliation \
-City, Country \
-[email@example.com](mailto:email@example.com)}
+\IEEEauthorblockN{Philipp Wurm}
+\IEEEauthorblockA{\textit{HTL Weiz}\\Weiz, Austria\\wurm200404@sr.htlweiz.at}
 \and
-\IEEEauthorblockN{Second Author}
-\IEEEauthorblockA{
-Affiliation \
-City, Country \
-[email@example.com](mailto:email@example.com)}
+\IEEEauthorblockN{Luca Groller}
+\IEEEauthorblockA{\textit{HTL Weiz}\\Weiz, Austria\\grolle200303@sr.htlweiz.at}
+\and
+\IEEEauthorblockN{Thomas Faustmann}
+\IEEEauthorblockA{\textit{HTL Weiz}\\Weiz, Austria\\faustm200382@sr.htlweiz.at}
+\and
+\IEEEauthorblockN{Thomas Sommerauer}
+\IEEEauthorblockA{\textit{HTL Weiz}\\Weiz, Austria\\sommer200312@sr.htlweiz.at}
 }
 
 % ====================
@@ -63,19 +73,22 @@ City, Country \
 \section{Introduction}
 \input{sections/introduction.tex}
 
-\section{Related Work}
+\section{Related Work}\label{sec:related}
 \input{sections/related_work.tex}
 
-\section{Methodology}
+\section{Methodology}\label{sec:methodology}
 \input{sections/methodology.tex}
 
-\section{Technical Concepts}
-\input{sections/results.tex}
+\section{Technical Background}\label{sec:concepts}
+\input{sections/background.tex}
 
-\section{Discussion}
+\section{Comparison}\label{sec:comparison}
+\input{sections/comparison.tex}
+
+\section{Discussion}\label{sec:discussion}
 \input{sections/discussion.tex}
 
-\section{Conclusion}
+\section{Conclusion}\label{sec:conclusion}
 \input{sections/conclusion.tex}
 
 % ====================

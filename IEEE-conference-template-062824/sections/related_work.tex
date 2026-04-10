@@ -1,1 +1,48 @@
-% Summarize prior work relevant to your research here.
+\subsection{Operational Transformation}
+
+A common problem in distributed systems is what happens when two users change the same data at the same time.
+One early solution was simply to lock the data so only one person could edit at a time -- but this does not
+work well when many people need to collaborate.
+
+A better approach is \textit{Operational Transformation} (OT). With OT, every user can make changes right
+away without waiting for others. When a change from another device arrives, the system figures out how to
+apply it correctly on top of whatever has already happened locally. A well-known early OT system is
+\textit{Jupiter}, which used a central server to keep track of all changes and resolve conflicts between
+clients \cite{nichols1995jupiter}. The central server made the conflict resolution easier to manage, but it
+also meant the system could not work without an internet connection.
+
+In practice, building OT correctly turned out to be quite difficult. Small mistakes in the logic can cause
+two copies of the data to end up in different states even though they received the same changes. This problem
+pushed researchers to look for a different approach.
+
+\subsection{Conflict-Free Replicated Data Types}
+
+In 2011, Shapiro et al.\ published a study on \textit{Conflict-Free Replicated Data Types} (CRDTs)
+\cite{shapiro2011comprehensive}. The idea is different from OT: instead of fixing conflicts after they
+happen, CRDTs are designed so that conflicts cannot occur in the first place. This is done by making sure
+that the order in which changes arrive does not matter -- the result is always the same.
+
+CRDTs come in two main forms. \textit{State-based CRDTs} share their entire current state with other nodes
+and merge it in a way that always produces the same result, no matter the order. \textit{Operation-based
+CRDTs} only send the individual change operations instead of the whole state; these operations are designed
+so that applying them in any order gives the same outcome \cite{shapiro2011comprehensive}.
+
+This property -- that every node ends up in the same state as long as it has received the same updates --
+is called \textit{strong eventual consistency} \cite{vogels2009eventually}. It is a weaker guarantee than
+always being in sync, but it is much easier to achieve across unreliable networks.
+
+\subsection{Existing Systems}
+
+Several real products already use CRDTs to handle conflicts automatically.
+
+\textit{Riak KV} is a distributed database that offers built-in CRDT data types such as counters and sets,
+so the database takes care of merging conflicting writes without any extra logic from the developer
+\cite{riak2024}.
+
+\textit{Redis} supports a mode called Active-Active, where multiple servers in different regions can all
+accept writes at the same time. Conflicts between these servers are resolved automatically using CRDT rules
+\cite{redis2024}.
+
+\textit{Automerge} and \textit{Yjs} are two open-source libraries that bring CRDTs to application
+developers. Both allow users to collaborate on shared documents and work offline -- changes sync
+automatically once a connection is restored, with no conflicts \cite{automerge2024, nicolaescu2015}.

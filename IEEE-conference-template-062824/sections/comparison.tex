@@ -1,0 +1,71 @@
+This section compares OT and CRDTs based on the criteria defined in the methodology.
+
+\subsection{Response Time}
+
+Both OT and CRDTs allow a node to apply changes locally without waiting for other nodes, which means
+neither approach introduces noticeable latency for the user. However, OT requires the server to
+transform and rebroadcast operations before other clients can apply them, introducing a round-trip
+dependency. CRDTs have no such requirement -- each node can merge incoming updates independently
+at any point, making them more suitable for fully asynchronous scenarios.
+
+\subsection{Consistency}
+
+Both approaches guarantee eventual consistency, meaning all nodes will converge to the same state
+once all updates have been delivered. OT achieves this through its transformation function, provided
+the TP1 property is satisfied \cite{nichols1995jupiter}. CRDTs achieve it structurally, by design:
+the merge operation is commutative, associative, and idempotent, so the result is always the same
+regardless of the order or number of times updates are applied \cite{shapiro2011comprehensive}.
+CRDTs therefore offer a stronger correctness guarantee, since their convergence does not depend on
+a correctly implemented transformation function.
+
+\subsection{Difficulty of Implementation}
+
+OT is notoriously difficult to implement correctly. The transformation function must handle all
+combinations of concurrent operations, and subtle mistakes can cause divergence. Several published
+OT algorithms were later found to contain bugs \cite{nichols1995jupiter}. CRDTs are easier to
+reason about at the data structure level, since the merge logic is self-contained and mathematically
+provable. However, choosing or designing the right CRDT for a given use case still requires a solid
+understanding of the underlying properties.
+
+\subsection{Suitability for Decentralised Use}
+
+OT in its most common form relies on a central server to serialize operations and apply
+transformations in a consistent order. Without a server, clients would need to implement TP2, which
+is significantly more complex and remains an open research problem \cite{ellis1989concurrency}.
+CRDTs, by contrast, are naturally suited to peer-to-peer architectures. Since every merge is
+deterministic and order-independent, nodes can synchronize directly with each other without any
+central coordinator, and can continue working while offline \cite{automerge2024, nicolaescu2015}.
+
+\subsection{Storage and Network Cost}
+
+State-based CRDTs require transmitting the full state on each synchronization, which becomes costly
+as the state grows. Delta-based CRDTs reduce this overhead by sending only incremental changes, but
+current algorithms can still produce redundant deltas \cite{Stateful_delta}. Operation-based CRDTs
+send only individual operations, but require reliable causal delivery \cite{sending_order}.
+OT requires the server to retain the full operation history in order to transform late-arriving
+operations from clients that are far behind the current version, which imposes a storage overhead
+on the server side.
+
+\subsection{Summary}
+
+Table~\ref{tab:comparison} summarizes the comparison across all criteria.
+
+\begin{table}[h]
+\caption{Comparison of OT and CRDTs}
+\label{tab:comparison}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Criterion} & \textbf{OT} & \textbf{CRDT} \\
+\hline
+Response time       & Local-first & Local-first \\
+\hline
+Consistency         & Eventual (TP1) & Strong eventual \\
+\hline
+Implementation      & Complex & Moderate \\
+\hline
+Decentralised use   & Limited & Native support \\
+\hline
+Network cost        & Operation history & State or deltas \\
+\hline
+\end{tabular}
+\end{table}
